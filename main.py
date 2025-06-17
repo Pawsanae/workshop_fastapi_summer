@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -21,3 +22,24 @@ async def get_counter():
     counter += 1
     return {"message": f"Counter is {counter}"}
 
+class Item(BaseModel):
+    item_id: int
+    name: str
+    description: str | None = None
+    price: float
+
+class ItemDto(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+
+items: dict[int, Item] = {}
+id = 0
+
+@app.post("/items/", response_model=Item)
+def create_item(item: ItemDto):
+    global id
+    id += 1
+    
+    items[id] = Item(item_id=id, name=item.name, description=item.description, price=item.price)
+    return items[id]
